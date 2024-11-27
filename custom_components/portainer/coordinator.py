@@ -178,3 +178,22 @@ class PortainerCoordinator(DataUpdateCoordinator):
                 self.data["containers"][cid]["Name"] = self.data["containers"][cid][
                     "Names"
                 ][0][1:]
+
+                self.data["containers"][cid]["Health"] = parse_api(
+                    data={},
+                    source=self.api.query(
+                        f"endpoints/{eid}/docker/containers/{cid}/json", "get", {"all": True}
+                    ),
+                    vals=[
+                        {
+                            "name": "Health_Status",
+                            "source": "State/Health/Status",
+                            "default": "unknown",
+                        }
+                    ],
+                    ensure_vals=[
+                        {"name": "Health_Status", "default": "unknown"},
+                    ]
+                )
+                self.data["containers"][cid]["Health_Status"] = self.data["containers"][cid]["Health"]["Health_Status"]
+                del self.data["containers"][cid]["Health"]
