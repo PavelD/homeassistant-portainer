@@ -62,6 +62,8 @@ async def async_add_entities(
             ):
                 _LOGGER.debug("Add entity %s", entity_id)
                 await platform.async_add_entities([obj])
+            else:
+                _LOGGER.debug("Update entity %s", entity_id)
 
         for description in descriptions:
             data = coordinator.data[description.data_path]
@@ -78,6 +80,14 @@ async def async_add_entities(
     await async_update_controller(coordinator)
     unsub = async_dispatcher_connect(hass, "update_sensors", async_update_controller)
     config_entry.async_on_unload(unsub)
+
+
+# ---------------------------
+#   async_get_entities
+# ---------------------------
+async def async_get_entities(hass: HomeAssistant) -> list:
+    """Get all entities related to a specific domain."""
+    return list(hass.data[DOMAIN].values())
 
 
 # ---------------------------
