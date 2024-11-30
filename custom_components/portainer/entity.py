@@ -85,8 +85,8 @@ async def async_add_entities(
 #   async_merge_entities
 # ---------------------------
 async def async_merge_entities(hass: HomeAssistant, entity_id: str) -> None:
-  
-  entity = er.async_get(entity_id)
+  entity_registry = er.async_get(hass)
+  entity = entity_registry.async_get(entity_id)
   if entity:
     # Get the attributes of the entity
     attributes = entity.attributes
@@ -95,9 +95,10 @@ async def async_merge_entities(hass: HomeAssistant, entity_id: str) -> None:
     device_id = entity.device_id
 
     # Define the subset of attributes to search for
-    search_attributes = dict()
-    for attribute in DEVICE_ATTRIBUTES_CONTAINERS_UNIQUE:
-      search_attributes[attribute] = attributes[attribute]
+    search_attributes = {
+        attribute: attributes[attribute]
+        for attribute in DEVICE_ATTRIBUTES_CONTAINERS_UNIQUE
+    }
 
     # Search for entities with the subset of matching attributes, within the same device
     matching_entities = [
