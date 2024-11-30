@@ -17,6 +17,12 @@ DEFAULT_DEVICE_NAME = "Portainer"
 DEFAULT_SSL = False
 DEFAULT_SSL_VERIFY = True
 
+DEVICE_ATTRIBUTES_CONTAINERS_UNIQUE = [
+    "Compose_Stack",
+    "Compose_Service",
+    "Environment",
+]
+
 TO_REDACT = {
     "password",
 }

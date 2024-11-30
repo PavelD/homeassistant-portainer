@@ -19,7 +19,7 @@ from homeassistant.helpers.entity import DeviceInfo, Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
 
-from .const import ATTRIBUTION, DOMAIN
+from .const import ATTRIBUTION, DOMAIN, DEVICE_ATTRIBUTES_CONTAINERS_UNIQUE
 from .coordinator import PortainerCoordinator
 from .helper import format_attribute
 
@@ -62,8 +62,8 @@ async def async_add_entities(
             ):
                 _LOGGER.debug("Add entity %s", entity_id)
                 await platform.async_add_entities([obj])
-            else:
-                _LOGGER.debug("Update entity %s", entity_id)
+            if obj.description.key == "container":
+                await async_merge_entities(entity_id)
 
         for description in descriptions:
             data = coordinator.data[description.data_path]
@@ -81,6 +81,35 @@ async def async_add_entities(
     unsub = async_dispatcher_connect(hass, "update_sensors", async_update_controller)
     config_entry.async_on_unload(unsub)
 
+# ---------------------------
+#   async_merge_entities
+# ---------------------------
+async def async_merge_entities(hass: HomeAssistant, entity_id: str) -> None:
+  
+  entity = er.async_get(entity_id)
+  if entity:
+    # Get the attributes of the entity
+    attributes = entity.attributes
+
+    # Get the device ID of the entity
+    device_id = entity.device_id
+
+    # Define the subset of attributes to search for
+    search_attributes = dict()
+    for attribute in DEVICE_ATTRIBUTES_CONTAINERS_UNIQUE:
+      search_attributes[attribute] = attributes[attribute]
+
+    # Search for entities with the subset of matching attributes, within the same device
+    matching_entities = [
+        e for e in er.async_get_entities()
+        if e.device_id == device_id and
+           all(e.attributes.get(k) == v for k, v in search_attributes.items()) and
+           e.entity_id != entity_id
+    ]
+
+    # Do something with the matching entities
+    for matching_entity in matching_entities:
+        _LOGGER.debug(matching_entity.entity_id)
 
 # ---------------------------
 #   async_get_entities
